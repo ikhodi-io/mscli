@@ -2,11 +2,15 @@ package com.marketsidekick.cli.instrument.futures
 
 import kotlinx.serialization.Serializable
 
-enum class OrderType {
-    Buy, Sell
-}
-
 @Serializable
 data class FutureOrder(
-    val orderType: OrderType
+    val triggerId: String,
+    val transactionType: String,
+    val orderType: String,
+    val quantity: String,
+    val price: String,
+    val symbol: String,
+    val productType: String,
+    val time: String,
+    val broker: String
 )
