@@ -40,6 +40,8 @@ fun Application.configureFutureEndpoints() {
                 BrowserState.page?.locator("input[id=\"password-input\"]")?.fill(credentials.password)
                 BrowserState.page?.getByText("Login")?.click()
                 BrowserState.page?.getByText("Access Simulation")?.click()
+                println("Logged in")
+                call.respond(HttpStatusCode.OK)
             } catch (ex: IllegalStateException) {
                 println("Illegal state exception")
                 call.respond(HttpStatusCode.BadRequest)
@@ -59,15 +61,16 @@ fun Application.configureFutureEndpoints() {
                     // Here you can execute additional actions on the page
                     if (futureOrder.orderType == "buy") {
                         BrowserState.page?.getByText("Buy Mkt")?.click()
-                        println("Buy at time ${futureOrder.time}")
+                        println("Buy oeder at time ${futureOrder.time}")
                     }
                     if (futureOrder.orderType == "sell") {
                         println("Selling....")
                     }
                     if (futureOrder.orderType == "close") {
                         BrowserState.page?.locator(".module-dom .header .market-buttons-wrapper")?.getByText("Exit at Mkt & Cxl")?.click()
-                        println("Close at time ${futureOrder.time}")
+                        println("Close order at time ${futureOrder.time}")
                     }
+                    call.respond(HttpStatusCode.OK)
                 } else {
                     call.respond("No active page session exists.")
                 }
