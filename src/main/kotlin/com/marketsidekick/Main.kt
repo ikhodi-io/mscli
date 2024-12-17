@@ -24,19 +24,50 @@ import io.ktor.server.netty.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
 object BrowserState {
-    var isHeadless: Boolean = false
-    var browser: com.microsoft.playwright.Browser? = Playwright.create().chromium().launch(
-        BrowserType.LaunchOptions().setChannel("chromium").setHeadless(isHeadless)
-    )
-    val context: BrowserContext? = browser?.newContext()
-    var page: Page? = context?.newPage()
+    var isHeadless: Boolean = System.getenv("MSCLI_MODE") == "production"
+    var browser: com.microsoft.playwright.Browser? = null
+    var context: BrowserContext? = null
+    var page: Page? = null
+    val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
+
+    init {
+        try {
+            // Initialize browser, context, and page
+            browser = Playwright.create().chromium().launch(
+                BrowserType.LaunchOptions().setChannel("chromium").setHeadless(isHeadless)
+            )
+            context = browser?.newContext()
+            page = context?.newPage()
+            println("Browser initialized successfully.")
+
+            // Schedule a task to reload the page
+            scheduler.scheduleAtFixedRate({
+                try {
+                    if (page != null) {
+                        println("Refreshing the page to keep the session active...")
+                        page!!.reload()
+                    } else {
+                        println("Page is not initialized. Skipping refresh.")
+                    }
+                } catch (e: Exception) {
+                    println("Error while refreshing the page: ${e.message}")
+                }
+            }, 7, 7, TimeUnit.MINUTES)
+
+            println("Browser is active. Close it manually to terminate.")
+        } catch (e: Exception) {
+            println("Error during browser setup: ${e.message}")
+        }
+    }
 }
 
 class MsCli : SuspendingCliktCommand() {
     // TODO: initialize BrowserState from command line
-    private val runHeadless: String by option().prompt("Run browser in headless mode Yes or No?").help("Run playwright in headless mode")
     private var username: String? = null
     private var password: String? = null
     private val client = HttpClient(CIO) {
@@ -54,7 +85,6 @@ class MsCli : SuspendingCliktCommand() {
             println("Starting Ktor server...")
             embeddedServer(Netty, port = 3000, module = Application::configureFutureEndpoints).start(wait = false)
         }
-        BrowserState.isHeadless = runHeadless.lowercase() == "yes"
         var name: String;
         while (true) {
             echo("What is your name >")
@@ -77,6 +107,15 @@ class MsCli : SuspendingCliktCommand() {
                     println("Response from login: $response")
                 } catch (e: Exception) {
                     println("Error during login: ${e.localizedMessage}")
+                }
+            }
+
+            if (name == "close"){
+                try {
+                    val response: HttpResponse = client.get("http://0.0.0.0:3000/close")
+                    println("Response from close: $response")
+                } catch (e: Exception) {
+                    println("Error during close: ${e.localizedMessage}")
                 }
             }
         }

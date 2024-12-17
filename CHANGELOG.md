@@ -1,0 +1,10 @@
+- Merge pull request #4 from ikhodi-io/release/v0.0.1
+- Release v0.0.1
+- Merge pull request #3 from ikhodi-io/print-statements
+- Add print statements in endpoints
+- Merge pull request #2 from ikhodi-io/playwright
+- Setup playwright to buy and sell on tradovate
+- Create gradle.yml
+- Merge pull request #1 from ikhodi-io/playwright
+- Configure Playwright
+- Initial commit

@@ -40,16 +40,16 @@ fun Application.configureFutureEndpoints() {
                 BrowserState.page?.locator("input[id=\"password-input\"]")?.fill(credentials.password)
                 BrowserState.page?.getByText("Login")?.click()
                 BrowserState.page?.getByText("Access Simulation")?.click()
-                println("Logged in")
+                println("Login successful, waiting for trade alerts...")
                 call.respond(HttpStatusCode.OK)
             } catch (ex: IllegalStateException) {
-                println("Illegal state exception")
+                println("Illegal state exception: ${ex.message}")
                 call.respond(HttpStatusCode.BadRequest)
             } catch (ex: JsonConvertException) {
-                println("Json convert exception")
+                println("Json convert exception: ${ex.message}")
                 call.respond(HttpStatusCode.BadRequest)
             } catch (ex: Exception) {
-                println("Exception occurred")
+                println("Exception occurred: ${ex.message}")
             }
         }
 
@@ -60,14 +60,15 @@ fun Application.configureFutureEndpoints() {
                 if (BrowserState.page != null) {
                     // Here you can execute additional actions on the page
                     if (futureOrder.orderType == "buy") {
-                        BrowserState.page?.getByText("Buy Mkt")?.click()
-                        println("Buy oeder at time ${futureOrder.time}")
+                        BrowserState.page?.locator(".module.module-dom .header .market-buttons-wrapper")?.getByText("Buy Mkt")?.click()
+                        println("Buy order at time ${futureOrder.time}")
                     }
                     if (futureOrder.orderType == "sell") {
-                        println("Selling....")
+                        BrowserState.page?.locator(".module.module-dom .header .market-buttons-wrapper")?.getByText("Sell Mkt")?.click()
+                        println("Sell order at time ${futureOrder.time}")
                     }
                     if (futureOrder.orderType == "close") {
-                        BrowserState.page?.locator(".module-dom .header .market-buttons-wrapper")?.getByText("Exit at Mkt & Cxl")?.click()
+                        BrowserState.page?.locator(".module.module-dom .header .market-buttons-wrapper")?.getByText("Exit at Mkt & Cxl")?.click()
                         println("Close order at time ${futureOrder.time}")
                     }
                     call.respond(HttpStatusCode.OK)
